@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+import { ThemeProvider } from "@/components/theme-provider"
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +28,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning is required for next-themes as it modifies the HTML element's class/style
+    // based on user preference (localStorage) which is not known during server-side rendering.
+    // See: https://github.com/pacocoursey/nex t-themes#with-app
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SiteHeader />
+          <main className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+        </ThemeProvider>
       </body>
     </html>
   );
