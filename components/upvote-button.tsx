@@ -9,14 +9,16 @@ interface UpvoteButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   count: number
   variant?: "default" | "outline" | "ghost" | "secondary"
   size?: "default" | "sm" | "lg" | "icon"
+  orientation?: "vertical" | "horizontal"
 }
 
-export function UpvoteButton({ 
-  count, 
-  className, 
+export function UpvoteButton({
+  count,
+  className,
   variant = "ghost",
   size = "default",
-  ...props 
+  orientation = "vertical",
+  ...props
 }: UpvoteButtonProps) {
   const [hasUpvoted, setHasUpvoted] = React.useState(false)
   const [currentCount, setCurrentCount] = React.useState(count)
@@ -37,14 +39,21 @@ export function UpvoteButton({
       variant={variant}
       size={size}
       className={cn(
-        "flex flex-col gap-0 h-auto py-2 min-w-[50px] transition-all",
+        "transition-all min-w-[50px]",
+        orientation === "vertical"
+          ? "flex flex-col gap-0 h-auto py-2"
+          : "flex flex-row gap-2 items-center",
         hasUpvoted && "text-primary border-primary bg-primary/10",
         className
       )}
       onClick={handleUpvote}
       {...props}
     >
-      <Triangle className={cn("h-4 w-4 mb-1 transition-all", hasUpvoted && "fill-current")} />
+      <Triangle className={cn(
+        "h-4 w-4 transition-all",
+        orientation === "vertical" ? "mb-1" : "",
+        hasUpvoted && "fill-current"
+      )} />
       <span className="font-semibold">{currentCount}</span>
     </Button>
   )

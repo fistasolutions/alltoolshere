@@ -12,16 +12,8 @@ export function SiteFooter() {
                     >
                         AllToolsHere
                     </a>
-                    . The source code is available on{" "}
-                    <a
-                        href="#"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium underline underline-offset-4"
-                    >
-                        GitHub
-                    </a>
-                    .
+
+
                 </p>
                 <div className="flex gap-4 text-sm text-muted-foreground">
                     <a href="#" className="hover:underline">Terms</a>

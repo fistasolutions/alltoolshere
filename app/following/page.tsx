@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import Link from "next/link"
+
 export default function FollowingPage() {
     return (
         <div className="container max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -33,8 +35,12 @@ export default function FollowingPage() {
                         </p>
                     </div>
                     <div className="flex gap-4">
-                        <Button>Find Makers</Button>
-                        <Button variant="outline">Explore Topics</Button>
+                        <Button asChild>
+                            <Link href="/search">Find Makers</Link>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <Link href="/topics">Explore Topics</Link>
+                        </Button>
                     </div>
                 </div>
             </div>

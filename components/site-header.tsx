@@ -34,6 +34,7 @@ export function SiteHeader() {
                             <Link href="/tools" className="text-lg font-semibold hover:text-primary">Tools</Link>
                             <Link href="/following" className="text-lg font-semibold hover:text-primary">Following</Link>
                             <Link href="/topics" className="text-lg font-semibold hover:text-primary">Topics</Link>
+                            <Link href="/advertise" className="text-lg font-semibold hover:text-primary">Advertise</Link>
                             <Link href="/about" className="text-lg font-semibold hover:text-primary">About</Link>
                         </nav>
                     </SheetContent>
@@ -42,8 +43,8 @@ export function SiteHeader() {
                 {/* Logo */}
                 <div className="mr-4 flex">
                     <Link href="/" className="mr-6 flex items-center space-x-2">
-                        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                            T
+                        <div className="h-8 w-auto px-1 rounded-tl-lg rounded-br-lg -skew-x-12 bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                            <span className="skew-x-12">ATH</span>
                         </div>
                         <span className="hidden font-bold sm:inline-block text-xl">
                             AllToolsHere
@@ -59,6 +60,9 @@ export function SiteHeader() {
                         </Link>
                         <Link href="/topics" className="transition-colors hover:text-foreground/80 text-foreground/60">
                             Topics
+                        </Link>
+                        <Link href="/advertise" className="transition-colors hover:text-foreground/80 text-foreground/60">
+                            Advertise
                         </Link>
                     </nav>
                 </div>
@@ -88,7 +92,7 @@ export function SiteHeader() {
                         <Bell className="h-5 w-5" />
                     </Button>
 
-                    <Button variant="default" size="sm" className="hidden sm:flex bg-orange-600 hover:bg-orange-700 text-white font-semibold">
+                    <Button variant="default" size="sm" className="hidden sm:flex  text-white font-semibold">
                         <Plus className="mr-2 h-4 w-4" />
                         Submit Tool
                     </Button>

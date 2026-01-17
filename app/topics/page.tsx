@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
 const TOPICS = [
     { name: "Artificial Intelligence", count: 1240, icon: "🤖" },
@@ -26,15 +27,17 @@ export default function TopicsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {TOPICS.map((topic) => (
-                    <Card key={topic.name} className="hover:shadow-md transition-shadow cursor-pointer group">
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                            <div className="text-4xl group-hover:scale-110 transition-transform">{topic.icon}</div>
-                            <div>
-                                <CardTitle className="text-base group-hover:text-primary transition-colors">{topic.name}</CardTitle>
-                                <CardDescription>{topic.count} tools</CardDescription>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                    <Link key={topic.name} href={`/tools?topic=${encodeURIComponent(topic.name)}`}>
+                        <Card className="hover:shadow-md transition-shadow cursor-pointer group h-full">
+                            <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                                <div className="text-4xl group-hover:scale-110 transition-transform">{topic.icon}</div>
+                                <div>
+                                    <CardTitle className="text-base group-hover:text-primary transition-colors">{topic.name}</CardTitle>
+                                    <CardDescription>{topic.count} tools</CardDescription>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                 ))}
             </div>
         </div>
