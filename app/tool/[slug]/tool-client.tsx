@@ -14,7 +14,8 @@ import {
     Bookmark,
     BarChart2,
     Play,
-    Rocket
+    Rocket,
+    Link as LinkIcon
 } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -39,15 +40,39 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 
-import { MOCK_TOOL } from "@/lib/mock-data"
+interface ToolData {
+    id: string
+    title: string
+    tagline: string
+    description: string
+    thumbnail: string
+    images?: string[]
+    topics: string[]
+    categories?: { name: string; slug: string }[]
+    website?: string
+    makers: { name: string; avatar: string; handle?: string }[]
+    upvotes: number
+    followers?: number
+    launchDate?: string
+    socials?: { twitter?: string; forum?: string }
+    links?: { type: string; url: string; label?: string }[]
+    paymentType?: string
+    comments?: any[]
+}
 
-export default function ToolClient() {
+interface ToolClientProps {
+    tool: ToolData
+}
+
+export default function ToolClient({ tool }: ToolClientProps) {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [showLoginModal, setShowLoginModal] = useState(false)
-    const TOOL = MOCK_TOOL
+    const [showAllCategories, setShowAllCategories] = useState(false)
+    const TOOL = tool
 
     // Type guard for complex comments or simplified comments
     const comments = Array.isArray(TOOL.comments) ? TOOL.comments : []
+
 
     return (
         <div className="container max-w-7xl mx-auto px-4 py-8">
@@ -124,13 +149,39 @@ export default function ToolClient() {
                                         <div className="text-sm text-muted-foreground flex flex-wrap gap-x-6 gap-y-2">
                                             <span className="text-foreground/80">{TOOL.paymentType}</span>
                                             <div className="flex items-center gap-2">
-                                                <span>Launch tags:</span>
-                                                <div className="flex gap-2">
-                                                    {TOOL.topics.map(topic => (
-                                                        <div key={topic} className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
-                                                            <span className="opacity-50">#</span>{topic}
-                                                        </div>
-                                                    ))}
+                                                <span>Categories:</span>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {(TOOL.categories || TOOL.topics.map(t => ({ name: t, slug: t })))
+                                                        .slice(0, showAllCategories ? undefined : 5)
+                                                        .map((cat, i) => (
+                                                            <Link
+                                                                key={i}
+                                                                href={`/category/${cat.slug}`}
+                                                                className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors px-2 py-1 rounded-md bg-muted/50 text-xs font-medium"
+                                                            >
+                                                                {cat.name}
+                                                            </Link>
+                                                        ))}
+                                                    {(TOOL.categories || TOOL.topics).length > 5 && !showAllCategories && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 px-2 text-xs text-muted-foreground"
+                                                            onClick={() => setShowAllCategories(true)}
+                                                        >
+                                                            +{(TOOL.categories || TOOL.topics).length - 5} more
+                                                        </Button>
+                                                    )}
+                                                    {showAllCategories && (TOOL.categories || TOOL.topics).length > 5 && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-6 px-2 text-xs text-muted-foreground"
+                                                            onClick={() => setShowAllCategories(false)}
+                                                        >
+                                                            Show less
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -463,46 +514,62 @@ export default function ToolClient() {
                     <Separator />
 
                     {/* Company Info */}
-                    <div className="space-y-4">
-                        <h3 className="font-bold text-sm">Company Info</h3>
-                        <div className="space-y-3 text-sm">
-                            <a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors truncate">
-                                <ExternalLink className="h-4 w-4" />
-                                <span className="truncate">play.google.com/store/apps/details?...</span>
-                            </a>
-                            <a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                                <Play className="h-4 w-4 fill-current" />
-                                <span>Play Store</span>
-                            </a>
+                    {TOOL.links && TOOL.links.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-sm">Company Info</h3>
+                            <div className="space-y-3 text-sm">
+                                {TOOL.links.map((link, i) => (
+                                    <a
+                                        key={i}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors truncate"
+                                    >
+                                        {link.type === 'play_store' ? (
+                                            <Play className="h-4 w-4 fill-current shrink-0" />
+                                        ) : link.type === 'app_store' ? (
+                                            <LinkIcon className="h-4 w-4 shrink-0" /> // Using generic Link icon for App Store just in case, or maybe ExternalLink
+                                        ) : (
+                                            <ExternalLink className="h-4 w-4 shrink-0" />
+                                        )}
+                                        <span className="truncate">{link.label || link.url}</span>
+                                    </a>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Tool Info */}
                     <div className="space-y-4">
                         <h3 className="font-bold text-sm">{TOOL.title} Info</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Rocket className="h-4 w-4" />
-                            <span>Launched in {TOOL.launchDate}</span>
+                            <span>Launched in {TOOL.launchDate || "2024"}</span>
                         </div>
                     </div>
 
                     {/* Forum */}
-                    <div className="space-y-4">
-                        <h3 className="font-bold text-sm">Forum</h3>
-                        <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>{TOOL.socials?.forum}</span>
-                        </a>
-                    </div>
+                    {TOOL.socials?.forum && (
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-sm">Forum</h3>
+                            <a href={TOOL.socials.forum} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                                <MessageSquare className="h-4 w-4" />
+                                <span className="truncate">Product Hunt Discussion</span>
+                            </a>
+                        </div>
+                    )}
 
                     {/* Social */}
-                    <div className="space-y-4">
-                        <h3 className="font-bold text-sm">Social</h3>
-                        <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                            <div className="w-4 h-4 rounded-full bg-foreground text-background flex items-center justify-center font-bold text-[10px]">X</div>
-                            <span>X</span>
-                        </a>
-                    </div>
+                    {TOOL.socials?.twitter && (
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-sm">Social</h3>
+                            <a href={TOOL.socials.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                                <div className="w-4 h-4 rounded-full bg-foreground text-background flex items-center justify-center font-bold text-[10px]">X</div>
+                                <span>X (Twitter)</span>
+                            </a>
+                        </div>
+                    )}
 
                 </div>
             </div>

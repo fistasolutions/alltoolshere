@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { ProductCard, Product } from "@/components/product-card"
+import { ProductCard, Product as ProductCardType } from "@/components/product-card"
 import { UpvoteButton } from "@/components/upvote-button"
 
-// Dummy Data
-const FEATURED_PRODUCT: Product = {
+import { getProducts, Product as ApiProduct } from "@/lib/products"
+
+// Dummy Data for fallback or static parts
+const FEATURED_PRODUCT_FALLBACK: ProductCardType = {
     id: "adb-wrench",
     title: "ADB Wrench",
     tagline: "ADB in your browser + AI assistant with no install required",
@@ -30,71 +32,46 @@ const FEATURED_MAKER_NOTE = {
     body: "Built this because I got tired of two things: the Android debugging setup dance, and Googling ADB commands every single time. ADB Wrench runs entirely in your browser (WebUSB) and has an AI assistant that knows ADB better than I do. Privacy-first: bring your own API key — we don't store or track anything.",
 }
 
-const PRODUCTS: Product[] = [
-    {
-        id: "1",
-        rank: 1,
-        title: "Magic AI Writer",
-        tagline: "Write blogs 10x faster with advanced AI models",
-        thumbnail: "https://images.unsplash.com/photo-1664575198308-3959904fa430?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        topics: ["AI", "Writing"],
-        makers: [{ name: "Alice", avatar: "https://github.com/shadcn.png" }],
-        upvotes: 320,
-        comments: 45
-    },
-    {
-        id: "2",
-        rank: 2,
-        title: "Super Analytics",
-        tagline: "Privacy-first analytics for your web apps",
-        thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        topics: ["Analytics", "Privacy"],
-        makers: [{ name: "Bob", avatar: "https://github.com/shadcn.png" }, { name: "Charlie", avatar: "https://github.com/shadcn.png" }],
-        upvotes: 215,
-        comments: 30
-    },
-    {
-        id: "3",
-        rank: 3,
-        title: "Design System Kit",
-        tagline: "A comprehensive Figma kit for modern UI",
-        thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        topics: ["Design", "Figma"],
-        makers: [{ name: "Dave", avatar: "https://github.com/shadcn.png" }],
-        upvotes: 180,
-        comments: 12
-    },
-    {
-        id: "4",
-        rank: 4,
-        title: "CodeSnap",
-        tagline: "Beautiful code screenshots instantly",
-        thumbnail: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        topics: ["Developer Tools", "Social"],
-        makers: [{ name: "Eve", avatar: "https://github.com/shadcn.png" }],
-        upvotes: 156,
-        comments: 28
-    },
-    {
-        id: "5",
-        rank: 5,
-        title: "Notion Folio",
-        tagline: "Turn your Notion pages into a portfolio",
-        thumbnail: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        topics: ["No-Code", "Portfolios"],
-        makers: [{ name: "Frank", avatar: "https://github.com/shadcn.png" }],
-        upvotes: 120,
-        comments: 15
-    }
-]
-
 export const metadata: Metadata = {
     alternates: {
         canonical: 'https://alltoolshere.com',
     },
 }
 
-export default function Home() {
+// Convert API product to Component product
+function mapToCardProduct(p: ApiProduct, index: number): ProductCardType {
+    return {
+        id: p.slug, // Use slug for navigation
+        title: p.name,
+        tagline: p.tagline || "",
+        description: p.description || "",
+        thumbnail: p.icon_url || p.image_url || "https://placehold.co/60x60/png?text=Icon", // Fallback
+        rank: index + 1,
+        topics: (p as any).topics || [], // Backend adds topics field
+        makers: (p.team_members || []).map(tm => ({
+            name: tm.name,
+            avatar: tm.avatar_url || "",
+            handle: tm.ph_username ? `@${tm.ph_username}` : undefined
+        })),
+        upvotes: 0, // Not yet in backend
+        comments: 0 // Not yet in backend
+    };
+}
+
+export default async function Home() {
+    // Fetch products
+    const apiProducts = await getProducts(1, 20);
+
+    // Convert to card format
+    const products = apiProducts.map((p, i) => mapToCardProduct(p, i));
+
+    // Use the first product as featured if available, else fallback
+    const featuredProduct = products.length > 0 ? products[0] : FEATURED_PRODUCT_FALLBACK;
+
+    // List for tabs (exclude featured from top list if needed, or just show all)
+    // For "Today" tab, let's show all fetched products
+    const productsList = products;
+
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "WebSite",
@@ -149,7 +126,7 @@ export default function Home() {
                             <Card className="border-border/60 bg-card">
                                 <CardContent className="p-4">
                                     <div className="text-sm text-muted-foreground">Launching today</div>
-                                    <div className="text-2xl font-bold mt-1">12</div>
+                                    <div className="text-2xl font-bold mt-1">{products.length || 12}</div>
                                 </CardContent>
                             </Card>
                             <Card className="border-border/60 bg-card">
@@ -175,29 +152,29 @@ export default function Home() {
                         <Card className="flex flex-col md:flex-row overflow-hidden hover:shadow-lg transition-shadow border-primary/20 bg-linear-to-br from-background to-muted/30">
                             <div className="md:w-1/2 relative h-64 md:h-auto">
                                 <img
-                                    src={FEATURED_PRODUCT.thumbnail}
-                                    alt={FEATURED_PRODUCT.title}
+                                    src={featuredProduct.thumbnail.startsWith("http") ? featuredProduct.thumbnail : featuredProduct.thumbnail}
+                                    alt={featuredProduct.title}
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end p-6 md:hidden">
-                                    <h3 className="text-white text-2xl font-bold">{FEATURED_PRODUCT.title}</h3>
+                                    <h3 className="text-white text-2xl font-bold">{featuredProduct.title}</h3>
                                 </div>
                             </div>
                             <div className="md:w-1/2 p-6 flex flex-col justify-center space-y-4">
                                 <div className="hidden md:block">
-                                    <h3 className="text-3xl font-bold">{FEATURED_PRODUCT.title}</h3>
-                                    <p className="text-xl text-muted-foreground mt-2">{FEATURED_PRODUCT.tagline}</p>
+                                    <h3 className="text-3xl font-bold">{featuredProduct.title}</h3>
+                                    <p className="text-xl text-muted-foreground mt-2">{featuredProduct.tagline}</p>
                                 </div>
                                 <div className="md:hidden">
-                                    <p className="text-lg text-muted-foreground">{FEATURED_PRODUCT.tagline}</p>
+                                    <p className="text-lg text-muted-foreground">{featuredProduct.tagline}</p>
                                 </div>
 
                                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-3">
-                                    {FEATURED_PRODUCT.description}
+                                    {featuredProduct.description}
                                 </p>
 
                                 <div className="flex flex-wrap gap-2">
-                                    {FEATURED_PRODUCT.topics.map(topic => (
+                                    {featuredProduct.topics.map(topic => (
                                         <Badge key={topic} variant="secondary">{topic}</Badge>
                                     ))}
                                 </div>
@@ -214,7 +191,7 @@ export default function Home() {
                                 <div className="flex items-center justify-between pt-4">
                                     <div className="flex items-center space-x-2">
                                         <div className="flex -space-x-2">
-                                            {FEATURED_PRODUCT.makers.map((maker, i) => (
+                                            {featuredProduct.makers.map((maker, i) => (
                                                 <Avatar key={i} className="border-2 border-background w-8 h-8">
                                                     <AvatarImage src={maker.avatar} />
                                                     <AvatarFallback>M</AvatarFallback>
@@ -225,10 +202,10 @@ export default function Home() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button size="lg" className="px-6 font-bold" asChild>
-                                            <Link href={`/tool/${FEATURED_PRODUCT.id}`}>View</Link>
+                                            <Link href={`/tool/${featuredProduct.id}`}>View</Link>
                                         </Button>
                                         <UpvoteButton
-                                            count={FEATURED_PRODUCT.upvotes}
+                                            count={featuredProduct.upvotes}
                                             variant="outline"
                                             size="lg"
                                             orientation="horizontal"
@@ -249,11 +226,11 @@ export default function Home() {
                             <CardContent className="space-y-4">
                                 <div className="flex items-start gap-3">
                                     <Avatar className="h-9 w-9">
-                                        <AvatarImage src={FEATURED_PRODUCT.makers[0]?.avatar} />
+                                        <AvatarImage src={featuredProduct.makers[0]?.avatar} />
                                         <AvatarFallback>M</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-1 min-w-0">
-                                        <div className="font-semibold text-sm">{FEATURED_PRODUCT.makers[0]?.name}</div>
+                                        <div className="font-semibold text-sm">{featuredProduct.makers[0]?.name}</div>
                                         <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
                                             {FEATURED_MAKER_NOTE.body}
                                         </p>
@@ -261,7 +238,7 @@ export default function Home() {
                                 </div>
                                 <div>
                                     <Button variant="outline" size="sm" asChild>
-                                        <Link href={`/tool/${FEATURED_PRODUCT.id}`}>
+                                        <Link href={`/tool/${featuredProduct.id}`}>
                                             Join the discussion
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </Link>
@@ -288,9 +265,11 @@ export default function Home() {
                             <TabsContent value="today" className="space-y-4">
                                 <h3 className="font-semibold text-lg pb-2">Top Ranked</h3>
                                 <div className="space-y-4">
-                                    {PRODUCTS.map(product => (
+                                    {productsList.length > 0 ? productsList.map(product => (
                                         <ProductCard key={product.id} product={product} />
-                                    ))}
+                                    )) : (
+                                        <div className="text-muted-foreground py-8 text-center">No products found today</div>
+                                    )}
                                 </div>
                             </TabsContent>
 
@@ -303,7 +282,7 @@ export default function Home() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    {[...PRODUCTS].slice(0, 4).map(product => (
+                                    {[...productsList].slice(0, 4).map(product => (
                                         <ProductCard key={product.id} product={product} hideRank />
                                     ))}
                                 </div>
@@ -312,7 +291,7 @@ export default function Home() {
                             <TabsContent value="month" className="space-y-4">
                                 <h3 className="font-semibold text-lg">New & noteworthy</h3>
                                 <div className="space-y-4">
-                                    {[...PRODUCTS].reverse().map(product => (
+                                    {[...productsList].reverse().map(product => (
                                         <ProductCard key={product.id} product={product} hideRank />
                                     ))}
                                 </div>
@@ -323,6 +302,7 @@ export default function Home() {
 
                 {/* Right Sidebar */}
                 <aside className="hidden lg:col-span-4 lg:block space-y-6">
+
 
                     {/* Streak Widget */}
                     <Card>
